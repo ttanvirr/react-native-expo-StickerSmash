@@ -17,6 +17,11 @@
     - [3.7.5. Add a bottom tab navigator](#375-add-a-bottom-tab-navigator)
     - [3.7.6. Install @expo/vector-icons](#376-install-expovector-icons)
     - [3.7.7. Update bottom tab navigator appearance](#377-update-bottom-tab-navigator-appearance)
+  - [3.8. Build a screen](#38-build-a-screen)
+    - [3.8.1. Display the image](#381-display-the-image)
+    - [3.8.2. Divide components into files](#382-divide-components-into-files)
+    - [3.8.3. Create buttons using Pressable](#383-create-buttons-using-pressable)
+    - [Enhance the reusable button component](#enhance-the-reusable-button-component)
 
 # 1. Overview
 
@@ -461,3 +466,311 @@ Let's also change the background color of the tab bar and header using `screenOp
 Our app now has a custom bottom tabs navigator:
 
 ![alt text](doc_images/image04.png)
+
+## 3.8. Build a screen
+
+In this section, we'll create the first screen of the StickerSmash app:
+
+<img src="doc_images/image05.png" alt="" width="250">
+
+The screen above displays an image and two buttons. The first button allows the user to select an image from their device. The second button allows the user to continue with a default image provided by the app.
+
+Once the user selects an image, they can add a sticker to it.
+
+### 3.8.1. Display the image
+
+We'll use `expo-image` library which is already included in the default project template. It provides a cross-platform `<Image>` component.
+
+The `Image` component takes the `source` as its value. The source uses `require` when the image is static and comes from `assets/images` directory. It can also come from Network as a `uri` property.
+
+Replace everything in `src/app/index.tsx` file with the following:
+
+```tsx
+import { Image } from "expo-image"
+import { StyleSheet, View } from "react-native"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image source={PlaceholderImage} style={styles.image} />
+      </View>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  // `View` is already a flex container
+  container: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#25292e",
+  },
+  imageContainer: {
+    flex: 1,
+  },
+  image: {
+    // width and height/aspect ratio required
+    width: "85%",
+    aspectRatio: 320 / 440,
+    borderRadius: 18,
+  },
+})
+```
+
+### 3.8.2. Divide components into files
+
+Let's divide the code into multiple files as we add more components to this screen.
+
+Create a `components` directory inside `src`, and inside it, create the `image-viewer.tsx` file.
+
+Move the code to display the image in this file along with the image styles:
+
+`src/components/image-viewer.tsx`
+
+```tsx
+import { Image } from "expo-image"
+import { ImageSourcePropType, StyleSheet } from "react-native"
+
+type Props = {
+  imgSource: ImageSourcePropType
+}
+
+export default function ImageViewer({ imgSource }: Props) {
+  return <Image source={imgSource} style={styles.image} />
+}
+
+const styles = StyleSheet.create({
+  image: {
+    // width and height/aspect ratio required
+    width: "85%",
+    aspectRatio: 320 / 440,
+    borderRadius: 18,
+  },
+})
+```
+
+Import `ImageViewer` and use it in the `src/app/(tabs)/index.tsx`:
+
+```tsx
+import ImageViewer from "@/components/image-viewer"
+import { StyleSheet, View } from "react-native"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <ImageViewer imgSource={PlaceholderImage} />
+      </View>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  // `View` is already a flex container
+  container: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#25292e",
+  },
+  imageContainer: {
+    flex: 1,
+  },
+})
+```
+
+### 3.8.3. Create buttons using Pressable
+
+React Native includes a few different components for handling touch events, but `<Pressable>` is recommended. It can detect single taps, long presses, trigger separate events when the button is pushed in and released, and more.
+
+There are two buttons we will create. Each has a different style and label. Let's start by creating a reusable component for these buttons. Create a `button.tsx` file inside the `src/components` directory with the following code:
+
+```tsx
+import { StyleSheet, View, Pressable, Text } from "react-native"
+
+type Props = {
+  label: string
+}
+
+export default function Button({ label }: Props) {
+  return (
+    <View style={styles.buttonContainer}>
+      <Pressable
+        style={styles.button}
+        onPress={() => alert("You pressed a button.")}
+      >
+        <Text style={styles.buttonLabel}>{label}</Text>
+      </Pressable>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    width: 320,
+    height: 68,
+    marginHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 3,
+  },
+  button: {
+    borderRadius: 10,
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  buttonLabel: {
+    color: "#fff",
+    fontSize: 16,
+  },
+})
+```
+
+Let's import this component into `src/app/(tabs)/index.tsx` file and add styles for the `<View>` that encapsulates these buttons:
+
+```tsx
+import { View, StyleSheet } from "react-native"
+
+import Button from "@/components/button"
+import ImageViewer from "@/components/image-viewer"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <ImageViewer imgSource={PlaceholderImage} />
+      </View>
+      <View style={styles.footerContainer}>
+        <Button label="Choose a photo" />
+        <Button label="Use this photo" />
+      </View>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#25292e",
+    alignItems: "center",
+  },
+  imageContainer: {
+    flex: 1,
+  },
+  footerContainer: {
+    flex: 1 / 3,
+    alignItems: "center",
+  },
+})
+```
+
+Let's take a look at our app on Android, iOS and the web:
+
+<img src="doc_images/image06.png" alt="" width="600" />
+
+The app displays an alert when the user taps any of the buttons on the screen. It happens because `<Pressable>` calls `alert()` on its `onPress` prop.
+
+We'll keep the second button with the label "Use this photo" as it is. However, we'll add more styling to the first button.
+
+### Enhance the reusable button component
+
+To add different styling to the "Choose a photo" button, we will add a new `theme` prop that will allow us to apply a primary theme. This button also has an icon before the label. We will use a FontAwesome icon from the `@expo/vector-icons` library.
+
+Modify `src/components/button.tsx`:
+
+```tsx
+import { StyleSheet, View, Pressable, Text } from "react-native"
+import FontAwesome from "@expo/vector-icons/FontAwesome"
+
+type Props = {
+  label: string
+  theme?: "primary"
+}
+
+export default function Button({ label, theme }: Props) {
+  if (theme === "primary") {
+    return (
+      <View
+        style={[
+          styles.buttonContainer,
+          { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 },
+        ]}
+      >
+        <Pressable
+          style={[styles.button, { backgroundColor: "#fff" }]}
+          onPress={() => alert("You pressed a button.")}
+        >
+          <FontAwesome
+            name="picture-o"
+            size={18}
+            color="#25292e"
+            style={styles.buttonIcon}
+          />
+          <Text style={[styles.buttonLabel, { color: "#25292e" }]}>
+            {label}
+          </Text>
+        </Pressable>
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.buttonContainer}>
+      <Pressable
+        style={styles.button}
+        onPress={() => alert("You pressed a button.")}
+      >
+        <Text style={styles.buttonLabel}>{label}</Text>
+      </Pressable>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    width: 320,
+    height: 68,
+    marginHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 3,
+  },
+  button: {
+    borderRadius: 10,
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  buttonIcon: {
+    paddingRight: 8,
+  },
+  buttonLabel: {
+    color: "#fff",
+    fontSize: 16,
+  },
+})
+```
+
+Now, modify the `src/app/(tabs)/index.tsx` file to use the `theme="primary"` prop on the first button:
+
+```tsx
+<View style={styles.footerContainer}>
+  <Button theme="primary" label="Choose a photo" />
+  <Button label="Use this photo" />
+</View>
+```
+
+Let's take a look at our app on Android, iOS and the web:
+
+<img src="doc_images/image07.png" width="600" />
