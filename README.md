@@ -15,18 +15,24 @@
     - [3.7.3. Navigate between screens](#373-navigate-between-screens)
     - [3.7.4. Add a not-found route](#374-add-a-not-found-route)
     - [3.7.5. Add a bottom tab navigator](#375-add-a-bottom-tab-navigator)
-    - [3.7.6. Install @expo/vector-icons](#376-install-expovector-icons)
+    - [3.7.6. Install @react-native-vector-icons](#376-install-react-native-vector-icons)
     - [3.7.7. Update bottom tab navigator appearance](#377-update-bottom-tab-navigator-appearance)
   - [3.8. Build a screen](#38-build-a-screen)
     - [3.8.1. Display the image](#381-display-the-image)
     - [3.8.2. Divide components into files](#382-divide-components-into-files)
     - [3.8.3. Create buttons using Pressable](#383-create-buttons-using-pressable)
-    - [Enhance the reusable button component](#enhance-the-reusable-button-component)
-  - [Use an image picker](#use-an-image-picker)
-    - [Install expo-image-picker](#install-expo-image-picker)
-    - [Pick an image from the device's media library](#pick-an-image-from-the-devices-media-library)
-    - [Update the button component](#update-the-button-component)
-    - [Use the selected image](#use-the-selected-image)
+    - [3.8.4. Enhance the reusable button component](#384-enhance-the-reusable-button-component)
+  - [3.9. Use an image picker](#39-use-an-image-picker)
+    - [3.9.1. Install expo-image-picker](#391-install-expo-image-picker)
+    - [3.9.2. Pick an image from the device's media library](#392-pick-an-image-from-the-devices-media-library)
+    - [3.9.3. Update the button component](#393-update-the-button-component)
+    - [3.9.4. Use the selected image](#394-use-the-selected-image)
+  - [3.10. Create a modal](#310-create-a-modal)
+    - [3.10.1. Declare a state variable to show buttons](#3101-declare-a-state-variable-to-show-buttons)
+    - [3.10.2. Add buttons](#3102-add-buttons)
+    - [3.10.3. Create an emoji picker modal](#3103-create-an-emoji-picker-modal)
+    - [3.10.4. Display a list of emoji](#3104-display-a-list-of-emoji)
+    - [3.10.5. Display the selected emoji](#3105-display-the-selected-emoji)
 
 # 1. Overview
 
@@ -381,13 +387,20 @@ Let's take a look at our app now to see the new bottom tabs:
 
 ![alt text](doc_images/image03.png)
 
-### 3.7.6. Install @expo/vector-icons
+### 3.7.6. Install @react-native-vector-icons
 
-To install the `@expo/vector-icons` library, stop the development server by pressing `Ctrl + C` in the terminal, then run the following command:
+> [!WARNING]
+> Do not use `@expo/vector-icons` as it will be deprecated. Rather, use `@react-native-vector-icons/*`. The old `@react-native-vector-icons` is also deprecated. Now the correct way to use them is to [install per icon family](https://www.npmjs.com/org/react-native-vector-icons)
+
+For now, we will install `ionicons`.
+To install it, stop the development server by pressing `Ctrl + C` in the terminal, then run the following command:
 
 ```bash
-npx expo install @expo/vector-icons
+npx expo install @react-native-vector-icons/ionicons
 ```
+
+> [!NOTE]
+> We use `npx expo install` instead of `npm install` when we use expo framework/cli.
 
 After the installation completes, start the development server again by running `npx expo start` or in case, `npx expo start --tunnel`.
 
@@ -397,7 +410,7 @@ Right now, the tab bar or header doesn't display a custom icon, and the bottom t
 
 Modify the `src/app/(tabs)/_layout.tsx` file to add tab bar icons:
 
-- Import `Ionicons` icons set from `@expo/vector-icons/Ionicons`.
+- Import `{Ionicons}` icons set from `@react-native-vector-icons/ionicons`.
 - Add the `tabBarIcon` to both the `index` and `about` routes. This function takes `focused` and `color` as params and renders the icon component. From the icon set, we can provide custom icon names.
 - Add `screenOptions.tabBarActiveTintColor` to the `Tabs` component and set its value to `#ffd33d`. This will change the color of the tab bar icon and label when active.
 
@@ -405,7 +418,7 @@ Modify the `src/app/(tabs)/_layout.tsx` file to add tab bar icons:
 
 ```tsx
 import { Tabs } from "expo-router"
-import Ionicons from "@expo/vector-icons/Ionicons" //new
+import { Ionicons } from "@react-native-vector-icons/ionicons" //new
 
 export default function TabLayout() {
   return (
@@ -686,15 +699,19 @@ The app displays an alert when the user taps any of the buttons on the screen. I
 
 We'll keep the second button with the label "Use this photo" as it is. However, we'll add more styling to the first button.
 
-### Enhance the reusable button component
+### 3.8.4. Enhance the reusable button component
 
-To add different styling to the "Choose a photo" button, we will add a new `theme` prop that will allow us to apply a primary theme. This button also has an icon before the label. We will use a FontAwesome icon from the `@expo/vector-icons` library.
+To add different styling to the "Choose a photo" button, we will add a new `theme` prop that will allow us to apply a primary theme. This button also has an icon before the label. We will use a FontAwesome icon from the `@react-native-vector-icons` library. So, first install the library:
 
-Modify `src/components/button.tsx`:
+```bash
+npx expo install @react-native-vector-icons/fontawesome
+```
+
+Then, modify `src/components/button.tsx`:
 
 ```tsx
 import { StyleSheet, View, Pressable, Text } from "react-native"
-import FontAwesome from "@expo/vector-icons/FontAwesome"
+import { FontAwesome } from "@react-native-vector-icons/fontawesome"
 
 type Props = {
   label: string
@@ -780,13 +797,13 @@ Let's take a look at our app on Android, iOS and the web:
 
 <img src="doc_images/image07.png" width="600" />
 
-## Use an image picker
+## 3.9. Use an image picker
 
 Now, we will build a feature to select an image from the device's media gallery. This isn't possible with the core components and we'll need a library.
 
 We'll use `expo-image-picker`, a library from Expo SDK that provides access to the system's UI to select images and videos from the phone's library.
 
-### Install expo-image-picker
+### 3.9.1. Install expo-image-picker
 
 Stop the development server, then run:
 
@@ -797,7 +814,7 @@ npx expo install expo-image-picker
 > [!TIP]
 > Any time we install a new library, stop the development server. After the installation completes, start the development server again.
 
-### Pick an image from the device's media library
+### 3.9.2. Pick an image from the device's media library
 
 `expo-image-picker` provides `launchImageLibraryAsync()` method to display the system UI by choosing an image or a video from the device's media library. We'll use the primary themed button created in the previous chapter to select an image from the device's media library and create a function to launch the device's image library to implement this functionality.
 
@@ -828,7 +845,7 @@ export default function Index() {
 
 When `allowsEditing` is set to `true`, the user can crop the image during the selection process on Android and iOS.
 
-### Update the button component
+### 3.9.3. Update the button component
 
 On pressing the primary button, we'll call the `pickImageAsync()` function on the `Button` component. Update the `onPress` prop of the `Button` component in `src/components/button.tsx`:
 
@@ -880,7 +897,7 @@ Here is an example of the result object for Android (see the terminal output aft
 }
 ```
 
-### Use the selected image
+### 3.9.4. Use the selected image
 
 The result object provides the `assets` array, which contains the `uri` of the selected image. Let's take this value and use it to show the selected image in the app.
 
@@ -953,3 +970,591 @@ export default function ImageViewer({ imgSource, selectedImage }: Props) {
 The picked image is a `uri` string, not a local asset like the placeholder image.
 
 Let's take a look at our app now. We can select an image from the device's media gallery and see it in the app.
+
+## 3.10. Create a modal
+
+A modal component displays an overlay to draw a user's attention toward critical information or guide them to take action.
+
+React Native provides a `<Modal>` component that presents content above the rest of the app.
+
+In this section, we'll create a modal that shows an emoji picker list.
+
+### 3.10.1. Declare a state variable to show buttons
+
+Before implementing the modal, we are going to add three new buttons. These buttons are visible after the user picks an image. One of these buttons will trigger the emoji picker modal.
+
+In `src/app/(tabs)/index.tsx`:
+
+1. Declare a boolean state variable, `showAppOptions`, to show or hide the buttons that open the modal, alongside a few other options. We'll set it to false by default. When the user picks an image or uses the placeholder image, we'll set it to true.
+2. Update the `pickImageAsync()` function to set the value of `showAppOptions` to `true` after the user picks an image.
+3. Update the button with no theme by adding an `onPress` prop.
+
+```tsx
+// existing codes...
+
+export default function Index() {
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined,
+  )
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false)
+
+  const pickImageAsync = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 1,
+    })
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri)
+      setShowAppOptions(true)
+    } else {
+      alert("You did not select any image.")
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <ImageViewer
+          imgSource={PlaceholderImage}
+          selectedImage={selectedImage}
+        />
+      </View>
+      {showAppOptions ? (
+        // show an empty view
+        <View />
+      ) : (
+        <View style={styles.footerContainer}>
+          <Button
+            theme="primary"
+            label="Choose a photo"
+            onPress={pickImageAsync}
+          />
+          <Button
+            label="Use this photo"
+            onPress={() => setShowAppOptions(true)}
+          />
+        </View>
+      )}
+    </View>
+  )
+}
+
+// existing styles...
+```
+
+In the above snippet, when the value of `showAppOptions` is true, we render an empty `<View>` component. We'll address this state in the next step.
+
+Now, we can remove the alert on the `Button` component and update the `onPress` prop when rendering the second button in the `src/components/button.tsx`:
+
+```tsx
+<Pressable style={styles.button}  onPress={onPress}>
+```
+
+### 3.10.2. Add buttons
+
+Let's break down the layout of the option buttons we'll implement:
+
+<img src="doc_images/image08.png" width="600" />
+
+It contains a parent `<View>` with three buttons aligned in a row. The button in the middle with the plus icon (+) will open the modal and is styled differently.
+
+We'll use MaterialIcons. So, first install the library:
+
+```bash
+npx expo install @react-native-vector-icons/material-icons
+```
+
+Inside the `src/components` directory, create a new `circle-button.tsx` file with the following code:
+
+```tsx
+import { MaterialIcons } from "@react-native-vector-icons/material-icons"
+import { Pressable, StyleSheet, View } from "react-native"
+
+type Props = {
+  onPress: () => void
+}
+
+export default function CircleButton({ onPress }: Props) {
+  return (
+    <View style={styles.circleButtonContainer}>
+      <Pressable style={styles.circleButton} onPress={onPress}>
+        <MaterialIcons name="add" size={38} color="#25292e" />
+      </Pressable>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  circleButtonContainer: {
+    width: 84,
+    height: 84,
+    marginHorizontal: 60,
+    borderWidth: 4,
+    borderColor: "#ffd33d",
+    borderRadius: 42,
+    padding: 3,
+  },
+  circleButton: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 42,
+    backgroundColor: "#fff",
+  },
+})
+```
+
+To render the plus icon, this button uses the `<MaterialIcons>` icon set.
+
+The other two buttons also use `<MaterialIcons>` to display vertically aligned text labels and icons. Create a file named `icon-button.tsx` inside the `src/components` directory. This component accepts three props:
+
+1. `icon`: the name corresponding to the `MaterialIcons` library icon.
+2. `label`: the text label displayed on the button.
+3. `onPress`: this function invokes when the user presses the button.
+
+`src/components/icon-button.tsx`
+
+```tsx
+import {
+  MaterialIcons,
+  MaterialIconsIconName,
+} from "@react-native-vector-icons/material-icons"
+import { Pressable, StyleSheet, Text } from "react-native"
+
+type Props = {
+  icon: MaterialIconsIconName
+  label: string
+  onPress: () => void
+}
+
+export default function IconButton({ icon, label, onPress }: Props) {
+  return (
+    <Pressable onPress={onPress} style={styles.iconButton}>
+      <MaterialIcons name={icon} size={24} color={"#fff"} />
+      <Text style={styles.iconButtonLabel}>{label}</Text>
+    </Pressable>
+  )
+}
+
+const styles = StyleSheet.create({
+  iconButton: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iconButtonLabel: {
+    color: "#fff",
+    marginTop: 12,
+  },
+})
+```
+
+Inside `src/app/(tabs)/index.tsx`:
+
+1. Import the `CircleButton` and `IconButton` components.
+2. Add three placeholder functions for these buttons. The `onReset()` function invokes when the user presses the reset button, causing the image picker button to appear again. We'll add the functionality for the other two functions later.
+
+```tsx
+// Other imports...
+
+import CircleButton from "@/components/circle-button"
+import IconButton from "@/components/icon-button"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  // existing codes...
+
+  const onReset = () => {
+    setShowAppOptions(false)
+  }
+
+  const onAddSticker = () => {
+    // we will implement this later
+  }
+
+  const onSaveImageAsync = () => {
+    // we will implement this later
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <ImageViewer
+          imgSource={PlaceholderImage}
+          selectedImage={selectedImage}
+        />
+      </View>
+
+      {showAppOptions ? (
+        <View style={styles.optionsContainer}>
+          <View style={styles.optionsRow}>
+            <IconButton icon="refresh" label="Reset" onPress={onReset} />
+            <CircleButton onPress={onAddSticker} />
+            <IconButton
+              icon="save-alt"
+              label="Save"
+              onPress={onSaveImageAsync}
+            />
+          </View>
+        </View>
+      ) : (
+        <View style={styles.footerContainer}>
+          {/* existing buttons...
+           */}
+        </View>
+      )}
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  // Other existing styles...
+
+  optionsContainer: {
+    position: "absolute",
+    bottom: 80,
+  },
+  optionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+})
+```
+
+Let's take a look at our app on Android, iOS and the web:
+
+<img src="doc_images/image09.png" width="600" />
+
+### 3.10.3. Create an emoji picker modal
+
+The modal allows the user to choose an emoji from a list of available emoji. Create an `emoji-picker.tsx` file inside the `src/components` directory. This component accepts three props:
+
+- `isVisible`: a boolean to determine the state of the modal's visibility.
+- `onClose`: a function to close the modal.
+- `children`: used later to display a list of emoji.
+
+`src/components/emoji-picker.tsx`
+
+```tsx
+import { MaterialIcons } from "@react-native-vector-icons/material-icons"
+import React from "react"
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native"
+
+type Props = {
+  isVisible: boolean
+  onClose: () => void
+  children?: React.ReactNode
+}
+
+export default function EmojiPicker({ isVisible, onClose, children }: Props) {
+  return (
+    <View>
+      <Modal visible={isVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContent}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Choose a sticker</Text>
+            <Pressable onPress={onClose}>
+              <MaterialIcons name="close" color={"#fff"} size={22} />
+            </Pressable>
+          </View>
+          {children}
+        </View>
+      </Modal>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  modalContent: {
+    height: "25%",
+    width: "100%",
+    backgroundColor: "#25292e",
+    borderTopRightRadius: 18,
+    borderTopLeftRadius: 18,
+    position: "absolute",
+    bottom: 0,
+  },
+  titleContainer: {
+    height: "16%",
+    backgroundColor: "#464c55",
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  title: {
+    color: "#fff",
+    fontSize: 16,
+  },
+})
+```
+
+What's going on here:
+
+- The `<Modal>` creates an overlay and the `<View>` with `styles.modalContent` component displays a title and a close button.
+- Its `visible` prop takes the value of `isVisible` and controls whether the modal is open or closed.
+- The `<EmojiPicker>` invokes the `onClose` prop when the user presses the close `<Pressable>`.
+
+Now, let's modify the `src/app/(tabs)/index.tsx`:
+
+1. Import the `<EmojiPicker>` component.
+2. Create an `isModalVisible` state variable. Its default value is false, which hides the modal until the user presses the button to open it.
+3. Replace the comment in the `onAddSticker()` function to update the `isModalVisible` variable to `true` when the user presses the button.
+4. Create the `onModalClose()` function to update the `isModalVisible` state variable.
+5. Place the `<EmojiPicker>` component at the bottom.
+
+`src/app/(tabs)/index.tsx`
+
+```tsx
+// Other existing imports...
+import EmojiPicker from "@/components/emoji-picker"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined,
+  )
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false)
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false)
+
+  const pickImageAsync = async () => {
+    // existing code...
+  }
+
+  const onReset = () => {
+    setShowAppOptions(false)
+  }
+
+  const onAddSticker = () => {
+    setIsModalVisible(true)
+  }
+
+  //new
+  const onModalClose = () => {
+    setIsModalVisible(false)
+  }
+
+  const onSaveImageAsync = async () => {
+    // we will implement this later
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        {/* existing ImageViewer
+         */}
+      </View>
+
+      {showAppOptions ? (
+        <View style={styles.optionsContainer}>
+          <View style={styles.optionsRow}>
+            {/* existing Option Buttons
+             */}
+          </View>
+        </View>
+      ) : (
+        <View style={styles.footerContainer}>
+          {/* existing Image picker buttons
+           */}
+        </View>
+      )}
+      <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
+        {/* Emoji list component will go here */}
+      </EmojiPicker>
+    </View>
+  )
+}
+
+// existing styles...
+```
+
+Here is the result after this step:
+
+<img src="doc_images/image10.png" width="600" />
+
+### 3.10.4. Display a list of emoji
+
+Let's add a horizontal list of emoji in the modal's content. We'll use the `<FlatList>` component from React Native.
+
+Create an `emoji-list.tsx` file inside the `src/components` directory:
+
+```tsx
+import { Image } from "expo-image"
+import { useState } from "react"
+import {
+  FlatList,
+  ImageSourcePropType,
+  Platform,
+  Pressable,
+  StyleSheet,
+} from "react-native"
+
+type Props = {
+  onSelect: (image: ImageSourcePropType) => void
+  onCloseModal: () => void
+}
+
+export default function EmojiList({ onSelect, onCloseModal }: Props) {
+  const [emoji] = useState<ImageSourcePropType[]>([
+    require("@/assets/images/emoji1.png"),
+    require("@/assets/images/emoji2.png"),
+    require("@/assets/images/emoji3.png"),
+    require("@/assets/images/emoji4.png"),
+    require("@/assets/images/emoji5.png"),
+    require("@/assets/images/emoji6.png"),
+  ])
+
+  return (
+    <FlatList
+      horizontal
+      showsHorizontalScrollIndicator={Platform.OS === "web"}
+      data={emoji}
+      contentContainerStyle={styles.listContainer}
+      renderItem={({ item, index }) => (
+        <Pressable
+          onPress={() => {
+            onSelect(item)
+            onCloseModal()
+          }}
+        >
+          <Image source={item} key={index} style={styles.image} />
+        </Pressable>
+      )}
+    />
+  )
+}
+
+const styles = StyleSheet.create({
+  listContainer: {
+    borderTopRightRadius: 10,
+    borderTopLeftRadius: 10,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  image: {
+    // width and height/aspect ratio required
+    width: 100,
+    height: 100,
+    marginRight: 20,
+  },
+})
+```
+
+Let's see what the above code does:
+
+- The `<FlatList>` component renders all the emoji images using the `Image` component, wrapped by a `<Pressable>`.
+- It takes an array of items provided by the `emoji` array variable as the value of the `data` prop. The `renderItem` prop takes the `item` from the `data`. Finally, we added `Image` component to display this item.
+- The `horizontal` prop renders the list horizontally. The `showsHorizontalScrollIndicator` uses React Native's `Platform` module to display the horizontal scroll bar on web.
+
+Now, update the `src/app/(tabs)/index.tsx` to import the `<EmojiList>` component and replace the comments inside the `<EmojiPicker>` component with the following code snippet:
+
+```tsx
+// Other existing imports...
+import { ImageSourcePropType, View, StyleSheet } from "react-native"
+import EmojiList from "@/components/emoji-list"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    undefined,
+  )
+  const [showAppOptions, setShowAppOptions] = useState<boolean>(false)
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false)
+  const [pickedEmoji, setPickedEmoji] = useState<
+    ImageSourcePropType | undefined
+  >(undefined)
+
+  // existing functions...
+
+  return (
+    <View style={styles.container}>
+      {/* existing Views...
+       */}
+      <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
+        <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose} />
+      </EmojiPicker>
+    </View>
+  )
+}
+
+// existing styles...
+```
+
+In the `EmojiList` component, the `onSelect` prop selects the emoji and after selecting it, the `onCloseModal` closes the modal.
+
+Let's take a look at our app on Android, iOS and the web:
+
+<img src="doc_images/image11.png" width="600" />
+
+### 3.10.5. Display the selected emoji
+
+Now, we'll put the emoji sticker on the image. Create a new file named `emoji-sticker.tsx` in the `src/components`:
+
+```tsx
+import { ImageSourcePropType, View } from "react-native"
+import { Image } from "expo-image"
+
+type Props = {
+  imageSize: number
+  stickerSource: ImageSourcePropType
+}
+
+export default function EmojiSticker({ imageSize, stickerSource }: Props) {
+  return (
+    <View style={{ top: -350 }}>
+      <Image
+        source={stickerSource}
+        style={{ width: imageSize, height: imageSize }}
+      />
+    </View>
+  )
+}
+```
+
+This component receives two props:
+
+- `imageSize`: a value defined inside the `Index` component. We will also use this value later to scale the image's size when tapped.
+- `stickerSource`: the `source` of the selected emoji image.
+
+Import this component in the `src/app/(tabs)/index.tsx` file and update the Index component to display the emoji sticker on the image. We will check if the `pickedEmoji` state is not `undefined`:
+
+`src/app/(tabs)/index.tsx`
+
+```tsx
+// Other existing imports...
+import EmojiSticker from "@/components/emoji-sticker"
+
+const PlaceholderImage = require("@/assets/images/background-image.png")
+
+export default function Index() {
+  // existing codes...
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <ImageViewer
+          imgSource={PlaceholderImage}
+          selectedImage={selectedImage}
+        />
+        {pickedEmoji && (
+          <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+        )}
+      </View>
+      {/* existing codes...
+       */}
+    </View>
+  )
+}
+
+// existing styles...
+```
+
+Let's take a look at our app on Android, iOS and the web. You should see the emoji sticker on the image now.
