@@ -33,6 +33,11 @@
     - [3.10.3. Create an emoji picker modal](#3103-create-an-emoji-picker-modal)
     - [3.10.4. Display a list of emoji](#3104-display-a-list-of-emoji)
     - [3.10.5. Display the selected emoji](#3105-display-the-selected-emoji)
+  - [3.11. Add gestures](#311-add-gestures)
+    - [3.11.1. Add GestureHandlerRootView](#3111-add-gesturehandlerrootview)
+    - [3.11.2. Use animated components](#3112-use-animated-components)
+    - [3.11.3. Add a tap gesture](#3113-add-a-tap-gesture)
+    - [3.11.4. Add a pan gesture](#3114-add-a-pan-gesture)
 
 # 1. Overview
 
@@ -1558,3 +1563,229 @@ export default function Index() {
 ```
 
 Let's take a look at our app on Android, iOS and the web. You should see the emoji sticker on the image now.
+
+## 3.11. Add gestures
+
+In this section, we'll implement gestures from React Native Gesture Handler and `Reanimated` libraries.
+
+We'll add two different gestures among others:
+
+- Double tap to scale the size of the emoji sticker and reduce the scale when double tapped again.
+- Pan to move the emoji sticker around the screen so that the user can place the sticker anywhere on the image.
+
+We'll also use the `Reanimated` library to animate between gesture states.
+
+### 3.11.1. Add GestureHandlerRootView
+
+To get gesture interactions to work in the app, we'll render `<GestureHandlerRootView>` from `react-native-gesture-handler` at the top of Index component. Replace the root level `<View>` component in the `src/app/(tabs)/index.tsx` with `<GestureHandlerRootView>`.
+
+`src/app/(tabs)/index.tsx`
+
+```tsx
+// ... rest of the import statements remain same
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+
+export default function Index() {
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      {/* ...rest of the code remains */}
+    </GestureHandlerRootView>
+  )
+}
+```
+
+### 3.11.2. Use animated components
+
+An `Animated` component looks at the `style` prop of the component and determines which values to animate and apply updates to create an animation.
+
+- Open the `src/components/emoji-sticker.tsx` file. Inside it, import `Animated` from the `react-native-reanimated` library to use animated components.
+- Replace the `Image` component with `<Animated.Image>` to make a double tap gesture work.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+// existing imports...
+import Animated from "react-native-reanimated"
+
+// existing codes...
+
+export default function EmojiSticker({ imageSize, stickerSource }: Props) {
+  return (
+    <View style={{ top: -350 }}>
+      <Animated.Image
+        source={stickerSource}
+        resizeMode="contain"
+        style={{ width: imageSize, height: imageSize }}
+      />
+    </View>
+  )
+}
+```
+
+### 3.11.3. Add a tap gesture
+
+React Native Gesture Handler allows us to detect a double tap event.
+
+In the `src/components/emoji-sticker.tsx` file:
+
+1. Import `Gesture` and `GestureDetector` from `react-native-gesture-handler`.
+2. import `useAnimatedStyle`, `useSharedValue`, and `withSpring` from `react-native-reanimated` to animate the style of the `<Animated.Image>`.
+3. Inside the `EmojiSticker` component, create a reference called `scaleImage` using the `useSharedValue()` hook. It will take the value of `imageSize` as its initial value.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+// ...rest of the import statements remain same
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+
+export default function EmojiSticker({ imageSize, stickerSource }: Props) {
+  const scaleImage = useSharedValue(imageSize);
+
+  return (
+    // ...rest of the code remains same
+  )
+}
+```
+
+Creating a shared value using the `useSharedValue()` hook helps to mutate data and runs animations based on the current value. We can access and modify the shared value using the `.value` property.
+
+Now, we'll create a `doubleTap` object to scale the initial value and use `Gesture.Tap()` to animate the transition.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+const doubleTap = Gesture.Tap()
+  .numberOfTaps(2)
+  .onStart(() => {
+    if (scaleImage.value !== imageSize * 2) {
+      scaleImage.value = scaleImage.value * 2
+    } else {
+      scaleImage.value = Math.round(scaleImage.value / 2)
+    }
+  })
+```
+
+Let's use a spring-based animation. This will make it feel alive. We will use the `withSpring()` function provided by `react-native-reanimated`.
+
+On the sticker image, we'll use the `useAnimatedStyle()` hook to create a style object. This will help us to update styles using shared values when the animation happens. We'll also scale the size of the image by manipulating the `width` and `height` properties. The initial values of these properties are set to `imageSize`.
+
+Create an `imageStyle` variable inside the `EmojiSticker` component:
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+const imageStyle = useAnimatedStyle(() => {
+  return {
+    width: withSpring(scaleImage.value),
+    height: withSpring(scaleImage.value),
+  }
+})
+```
+
+Next, wrap the `<Animated.Image>` component with the `<GestureDetector>` and modify the `style` prop on the `<Animated.Image>` to pass the `imageStyle`.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+// Other codes remain same...
+return (
+  <View style={{ top: -350 }}>
+    <GestureDetector gesture={doubleTap}>
+      <Animated.Image
+        source={stickerSource}
+        resizeMode="contain"
+        style={[{ width: imageSize, height: imageSize }, imageStyle]}
+      />
+    </GestureDetector>
+  </View>
+)
+```
+
+In the above snippet, the `gesture` prop takes the value of the `doubleTap` to trigger a gesture when a user double-taps the sticker image.
+
+Let's take a look at our app on Android, iOS and the web.
+
+### 3.11.4. Add a pan gesture
+
+To recognize a dragging gesture on the sticker and to track its movement, we'll use a pan gesture. In the `src/components/emoji-sticker.tsx`:
+
+1. Create two new shared values: `translateX` and `translateY`.
+2. Replace the `<View>` with the `<Animated.View>` component.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+export default function EmojiSticker({ imageSize, stickerSource }: Props) {
+  const scaleImage = useSharedValue(imageSize)
+  const translateX = useSharedValue(0)
+  const translateY = useSharedValue(0)
+  // ...rest of the code remains same
+
+  return (
+    <Animated.View style={{ top: -350 }}>
+      <GestureDetector gesture={doubleTap}>
+        {/* ...rest of the code remains same */}
+      </GestureDetector>
+    </Animated.View>
+  )
+}
+```
+
+Let's see what the above code does:
+
+- The translation values defined will move the sticker around the screen along the X and Y axes.
+- In the `useSharedValue()` hooks, we have set both translation variables to have an initial position of `0`. This value sets the sticker's initial position when the gesture starts.
+
+In the previous step, we triggered the `onStart()` callback for the tap gesture. For the pan gesture, specify an `onChange()` callback, which runs when the gesture is active and moving.
+
+1. Create a `drag` object to handle the pan gesture. The `onChange()` callback accepts `event` as a parameter. `changeX` and `changeY` properties hold the change in position since the last event and update the values stored in `translateX` and `translateY`.
+2. Define the `containerStyle` object using the `useAnimatedStyle()` hook. It will return an array of transforms. For the `<Animated.View>` component, we need to set the `transform` property to the `translateX` and `translateY` values. This will change the sticker's position when the gesture is active.
+
+```tsx
+const drag = Gesture.Pan().onChange((event) => {
+  translateX.value += event.changeX
+  translateY.value += event.changeY
+})
+
+const containerStyle = useAnimatedStyle(() => {
+  return {
+    transform: [
+      {
+        translateX: translateX.value,
+      },
+      {
+        translateY: translateY.value,
+      },
+    ],
+  }
+})
+```
+
+Next, inside the JSX code:
+
+1. Make the `<GestureDetector>` component becomes the top-level component.
+2. Add the `containerStyle` on the `<Animated.View>` component to apply the transform styles.
+
+`src/components/emoji-sticker.tsx`
+
+```tsx
+// Other codes remain same...
+return (
+  <GestureDetector gesture={drag}>
+    <Animated.View style={[containerStyle, { top: -350 }]}>
+      <GestureDetector gesture={doubleTap}>
+        <Animated.Image
+          source={stickerSource}
+          resizeMode="contain"
+          style={[{ width: imageSize, height: imageSize }, imageStyle]}
+        />
+      </GestureDetector>
+    </Animated.View>
+  </GestureDetector>
+)
+```
+
+Let's take a look at our app on Android, iOS and the web.
+
+Commit changes.
