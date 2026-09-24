@@ -38,6 +38,30 @@
     - [3.11.2. Use animated components](#3112-use-animated-components)
     - [3.11.3. Add a tap gesture](#3113-add-a-tap-gesture)
     - [3.11.4. Add a pan gesture](#3114-add-a-pan-gesture)
+  - [3.12. Development build using EAS](#312-development-build-using-eas)
+    - [3.12.1. Understanding development builds](#3121-understanding-development-builds)
+    - [3.12.2. Install expo-dev-client library](#3122-install-expo-dev-client-library)
+    - [3.12.3. Initialize a development build](#3123-initialize-a-development-build)
+      - [3.12.3.1. Install EAS CLI](#31231-install-eas-cli)
+      - [3.12.3.2. Log in or sign up for an Expo account](#31232-log-in-or-sign-up-for-an-expo-account)
+      - [3.12.3.3. Initialize and link the project to EAS](#31233-initialize-and-link-the-project-to-eas)
+    - [3.12.4. Configure project for EAS Build](#3124-configure-project-for-eas-build)
+    - [3.12.5. Create a build for Android](#3125-create-a-build-for-android)
+    - [3.12.6. Install and run the build on Android device](#3126-install-and-run-the-build-on-android-device)
+      - [3.12.6.1. Install development build](#31261-install-development-build)
+        - [3.12.6.1.1. Method-1: Expo Orbit](#312611-method-1-expo-orbit)
+        - [3.12.6.1.2. Method-2: Use the Install button and QR code](#312612-method-2-use-the-install-button-and-qr-code)
+      - [3.12.6.2. Run development build](#31262-run-development-build)
+    - [3.12.7. Install and run the build on Android Emulator](#3127-install-and-run-the-build-on-android-emulator)
+      - [3.12.7.1. Install development build](#31271-install-development-build)
+        - [3.12.7.1.1. Method-1: Expo Orbit](#312711-method-1-expo-orbit)
+        - [3.12.7.1.2. Method-2: Use the Install button and Link](#312712-method-2-use-the-install-button-and-link)
+      - [3.12.7.2. Run development build](#31272-run-development-build)
+  - [3.13. Back to the app: Take a screenshot](#313-back-to-the-app-take-a-screenshot)
+    - [3.13.1. Install libraries](#3131-install-libraries)
+    - [3.13.2. Prompt for permissions](#3132-prompt-for-permissions)
+    - [3.13.3. Create a ref to save the current view](#3133-create-a-ref-to-save-the-current-view)
+    - [3.13.4. Capture a screenshot and save it](#3134-capture-a-screenshot-and-save-it)
 
 # 1. Overview
 
@@ -1789,3 +1813,327 @@ return (
 Let's take a look at our app on Android, iOS and the web.
 
 Commit changes.
+
+## 3.12. Development build using EAS
+
+Before using `expo-media-library` to save the image to device's media, we need to create and install a development build to run the app instead of Expo Go.
+
+This section we will use EAS (Expo Application Service) Build to create and install a development build, then run it on a device, emulator, or simulator.
+
+### 3.12.1. Understanding development builds
+
+A development build is a debug version of our project. It is optimized for quick iterations when creating an app. It contains the `expo-dev-client` library, which offers a robust and complete development environment. This setup allows us to integrate any native library or change code inside the native directories as required.
+
+You can think of a development build as a customizable version of Expo Go that is unique to the requirements of a project.
+
+### 3.12.2. Install expo-dev-client library
+
+First stop the development server and then run the following command to install the library:
+
+```bash
+npx expo install expo-dev-client
+```
+
+Start the development server again using `npx expo start` or `npx expo start --tunnel`
+
+After starting the development server, in the terminal window, we see the QR code followed by a Metro manifest URL.
+
+Let's notice the changes installing the `expo-dev-client library`:
+
+- The manifest URL contains `expo-development-client` along with the app scheme
+- The development server now operates for a development build (instead of Expo Go).
+
+Since we do not have a development build installed on one of our devices or an emulator/simulator, we can't run our project yet.
+
+### 3.12.3. Initialize a development build
+
+#### 3.12.3.1. Install EAS CLI
+
+Install the EAS command-line interface (CLI) tool as a global dependency on our local machine:
+
+```bash
+npm install --global eas-cli
+```
+
+#### 3.12.3.2. Log in or sign up for an Expo account
+
+If you have an Expo account and are signed in using Expo CLI, skip this step. If you don't have an Expo account, [sign up here](https://expo.dev/signup) and proceed with the login command below:
+
+```bash
+eas login
+```
+
+This command asks for our Expo account email or username and password to complete the login.
+
+#### 3.12.3.3. Initialize and link the project to EAS
+
+For any new project, the first step is to initialize and link it to the EAS servers. Run the following command:
+
+```bash
+eas init
+```
+
+On running, this command:
+
+- Requests verification of the account owner by entering our Expo account credentials and asks if we want to create a new EAS project:
+
+```
+✔ Which account should own this project? › your-username
+✔ Would you like to create a project for @ttanvirr/StickerSmash? … yes
+✔ Created @ttanvirr/StickerSmash
+✔ Project successfully linked (ID: 09cae057-7801-4783-b0fb-bc5f7d0c23cd) (modified app.json)
+✔ Set the project icon from icon in your app config
+```
+
+- Creates EAS project and provides a link to that project which we can open in the EAS dashboard:
+
+<img src="doc_images/image12.png" width="600" />
+
+- Generates a unique `projectId` and links this EAS project to the example app on our development machine.
+- Modifies `app.json` to include `extra.eas.projectId` and updates its value with the unique ID created:
+
+`app.json`
+
+```json
+{
+  "extra": {
+    "eas": {
+      "projectId": "0cd3da2d-xxx-xxx-xxx-xxxxxxxxxx"
+    }
+  }
+}
+```
+
+### 3.12.4. Configure project for EAS Build
+
+To set up our project for EAS Build, run the following command:
+
+```bash
+eas build:configure
+```
+
+On running, this command:
+
+- Prompts to select a platform: Android, iOS, or All. Since we are creating Android and iOS apps, let's select All.
+- Creates `eas.json` in the root of our project's directory with default configuration.
+
+This default configuration does two things:
+
+- Defines the current EAS CLI version.
+- Adds three build profiles: `development`, `preview`, and `production`.
+
+Currently, our focus is on the `development` profile, which includes the following configuration:
+
+- `developmentClient`: Enabled (true) for creating a debug build. It loads the app using the `expo-dev-client` library, which provides development tools and generates a build artifact for device or emulator/simulator installation.
+- `distribution`: Configured as `internal` to indicate that we want to share the build internally (instead of uploading it on app stores).
+
+### 3.12.5. Create a build for Android
+
+For Android, the development build must be in the `.apk`. While the default Android format is `.aab`, which is ideal for _Google Play Store_ distribution, it cannot be installed on devices or emulators.
+
+To create a `.apk`:
+
+- In `eas.json`, make sure that `developmentClient` is set to true under `build.development` profile.
+- Then, run the `eas build` command with `android` as the platform and `development` as the build profile:
+
+```bash
+eas build --platform android --profile development
+```
+
+> TIP: You can also use `-p` instead of `--platform`.
+
+This command prompts us with the following questions:
+
+- "What would you like your Android application id to be?" Press `Return` to select the default value provided for this prompt. This will add `android.package` in `app.json`.
+- "Generate a new Android Keystore?" Press `Y`.
+
+After responding, the build will queue up, and we can track its progress via a provided link by the EAS CLI in the EAS dashboard.
+
+> [!NOTE]
+> What is an Android application ID?
+>
+> Also known as the package name of our Android app, it stores the value in DNS reverse notation format (`com.owner.appname`), where `com.owner` is the domain and and in our case, `stickersmash` is our app name.
+
+### 3.12.6. Install and run the build on Android device
+
+#### 3.12.6.1. Install development build
+
+Once the build finishes, the Build artifact section in the EAS dashboard gets updated, indicating that the build is complete:
+
+<img src="doc_images/image13.png" width="600" />
+
+This section provides the methods available for running the development build on an Android device: Expo Orbit and Install button.
+
+##### 3.12.6.1.1. Method-1: Expo Orbit
+
+[Expo Orbit](https://expo.dev/orbit) allows for seamless installation of the development build on an Android device. To use this method:
+
+- Install it on your local machine (not on the android device).
+- Connect our Android device to our local machine using USB.
+- Open the Orbit app on your local machine. You may also log in.
+- Select the Device in the Orbit app.
+
+<img src="doc_images/image14.png" width="600" />
+
+> [!NOTE]
+> You may not see the device in the list. In this case you may need to configure your device to allow USB debugging. Go to `Settings > About Phone > Software information`. Find `Build number` and tap it quickly for 7 times to enable developer mode. Now you can see `Developer options` in Settings. Open it and enable USB debugging. Now open the Orbit app and you'll see the device in the list.
+
+- On the EAS dashboard, under Build artifact, click the `Open with Orbit`.
+
+After the build is installed, the Orbit app launches the development build on the device.
+
+##### 3.12.6.1.2. Method-2: Use the Install button and QR code
+
+The Install button in the Build artifact generates a QR code for installation:
+
+- Click Install to display a popup with the QR code.
+- Scan the QR code with our Android device's camera to open the build link in the default web browser.
+- Tap the Install button on the webpage to download the .apk file.
+- Once downloaded, open the .apk to start the installation process.
+- If an Unsafe app blocked message appears, select Install anyway. This warning can safely be ignored as the source of the .apk (which we generated) is trusted.
+
+#### 3.12.6.2. Run development build
+
+After installation, we can disconnect the USB connection.
+
+Start the development server by running `npx expo start` or in case, `npx expo start --tunnel` from the project directory. Once the server is running, press `A` in the terminal window to open the project. If pressing `A` doesn't work, use the QR code, scan it with the scanner provided by our StickerSmash app that is just installed.
+
+### 3.12.7. Install and run the build on Android Emulator
+
+To set up an Android emulator, [Follow this guilde](https://docs.expo.dev/workflow/android-studio-emulator/)
+
+#### 3.12.7.1. Install development build
+
+##### 3.12.7.1.1. Method-1: Expo Orbit
+
+Run the Android Emulator from Android Studio. Open the Orbit app and select the Emulator in the list. Now, from Build artifact on the EAS dashboard, click `Open with Expo Orbit` to install the development build on the Android Emulator.
+
+##### 3.12.7.1.2. Method-2: Use the Install button and Link
+
+The Install button in the Build artifact generates a QR code and a Link for installation. In this case, we'll use the link. Enter the link in the web browser inside the Emulator to the the installation link.
+
+#### 3.12.7.2. Run development build
+
+After installation has finished, open it on the Emulator. Start the development server by running `npx expo start` or in case, `npx expo start --tunnel` from the project directory. Once the server is running, we'll have an option to open our StickerSmash app in the emulator.
+
+## 3.13. Back to the app: Take a screenshot
+
+Once we have set up the development build, we can use libraries like `expo-media-library` to save images to device's media library.
+
+In this section, we'll take a screenshot using `react-native-view-shot` library and save it on the device's media library using `expo-media-library`.
+
+### 3.13.1. Install libraries
+
+To install `react-native-view-shot` and `expo-media-library`, stop the development server and run the following commands:
+
+```bash
+npx expo install react-native-view-shot expo-media-library
+```
+
+### 3.13.2. Prompt for permissions
+
+An app that requires sensitive information, such as accessing a device's media library, has to prompt permission to allow or deny access. Using `useMediaLibraryPermissions()` hook from `expo-image-picker`, we can use the permission `permissionResponse` and `requestPermission() `method to ask for access. This hook requests both read and write permissions, which covers picking images from the library and saving screenshots to it.
+
+When the app loads for the first time and the permission status is neither granted nor denied, the value of the `permissionResponse` is `null`. We can add a condition to check if it is not granted. If it is not granted, trigger the `requestPermission()` method. After getting the access, the value of the `permissionResponse` changes to granted.
+
+Add the following code snippet inside the `src/app/(tabs)/index.tsx`:
+
+```tsx
+import { useEffect, useState } from "react"
+import * as ImagePicker from "expo-image-picker"
+
+// ...rest of the code remains same
+
+export default function Index() {
+  const [permissionResponse, requestPermission] =
+    ImagePicker.useMediaLibraryPermissions()
+  // ...rest of the code remains same
+
+  useEffect(() => {
+    if (!permissionResponse?.granted) {
+      requestPermission()
+    }
+  }, [])
+
+  // ...rest of the code remains same
+}
+```
+
+### 3.13.3. Create a ref to save the current view
+
+1. Import `useRef` from React.
+2. Create an `imageRef` reference variable to store the reference of the screenshot image captured.
+3. Wrap the `<ImageViewer>` and `<EmojiSticker>` components inside a `<View>` and then pass the reference variable to it.
+
+`src/app/(tabs)/index.tsx`
+
+```tsx
+import { useState, useRef } from "react"
+import { captureRef } from "react-native-view-shot"
+
+export default function Index() {
+  const imageRef = useRef<View>(null)
+
+  // ...rest of the code remains same
+
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <View style={styles.imageContainer}>
+        <View ref={imageRef} collapsable={false}>
+          <ImageViewer
+            imgSource={PlaceholderImage}
+            selectedImage={selectedImage}
+          />
+          {pickedEmoji && (
+            <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+          )}
+        </View>
+      </View>
+      {/* ...rest of the code remains same */}
+    </GestureHandlerRootView>
+  )
+}
+```
+
+In the above snippet, the `collapsable` prop is set to `false`. This allows the `<View>` component to screenshot only of the background image and emoji sticker.
+
+### 3.13.4. Capture a screenshot and save it
+
+We can capture a screenshot of the `<View>` as an image by calling the `captureRef()` method from `react-native-view-shot` inside the `onSaveImageAsync()` function. It accepts an optional argument where we can pass the `width` and `height` of the screenshot capturing area.
+
+The `captureRef()` method also returns a promise that fulfills with the screenshot's URI. We will pass this URI as a parameter to `MediaLibrary.saveToLibraryAsync()` and save the screenshot to the device's media library.
+
+Inside `src/app/(tabs)/index.tsx`:
+
+1. Import `captureRef` from `react-native-view-shot` and `MediaLibrary` from `expo-media-library`.
+2. update the `onSaveImageAsync()` function with the following code.
+
+`src/app/(tabs)/index.tsx`
+
+```tsx
+// Other imports remain same...
+import * as MediaLibrary from "expo-media-library"
+import { captureRef } from "react-native-view-shot"
+
+export default function Index() {
+  // Other codes remain same...
+
+  const onSaveImageAsync = async () => {
+    try {
+      const localUri = await captureRef(imageRef, {
+        height: 440,
+        quality: 1,
+      })
+
+      await MediaLibrary.saveToLibraryAsync(localUri)
+      if (localUri) {
+        alert("Saved!")
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  // Other codes remain same...
+}
+```
