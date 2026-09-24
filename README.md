@@ -93,6 +93,12 @@ It covers the following topics:
    npx expo start
    ```
 
+In case, you might run:
+
+```bash
+npx expo start --tunnel
+```
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
@@ -2101,7 +2107,7 @@ In the above snippet, the `collapsable` prop is set to `false`. This allows the 
 
 We can capture a screenshot of the `<View>` as an image by calling the `captureRef()` method from `react-native-view-shot` inside the `onSaveImageAsync()` function. It accepts an optional argument where we can pass the `width` and `height` of the screenshot capturing area.
 
-The `captureRef()` method also returns a promise that fulfills with the screenshot's URI. We will pass this URI as a parameter to `MediaLibrary.saveToLibraryAsync()` and save the screenshot to the device's media library.
+The `captureRef()` method also returns a promise that fulfills with the screenshot's URI. We will pass this URI as a parameter to `MediaLibrary.Asset.create()` and save the screenshot to the device's media library.
 
 Inside `src/app/(tabs)/index.tsx`:
 
@@ -2125,10 +2131,8 @@ export default function Index() {
         quality: 1,
       })
 
-      await MediaLibrary.saveToLibraryAsync(localUri)
-      if (localUri) {
-        alert("Saved!")
-      }
+      await MediaLibrary.Asset.create(localUri)
+      alert("Saved!")
     } catch (e) {
       console.log(e)
     }
@@ -2137,3 +2141,7 @@ export default function Index() {
   // Other codes remain same...
 }
 ```
+
+Now, choose a photo and add a sticker in the app. Then tap the "Save" button. We should see the saved image in the media library.
+
+The End!
